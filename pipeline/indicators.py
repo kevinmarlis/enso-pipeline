@@ -130,11 +130,15 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
     fp_date = date.replace('-', '_')
     cycle_indicators_path = f'{OUTPUT_DIR}/cycle_indicators'
     os.makedirs(cycle_indicators_path, exist_ok=True)
+    os.chmod(cycle_indicators_path, 0o777)
+    
     indicator_output_path = f'{cycle_indicators_path}/{fp_date}_indicator.nc'
     ds_and_paths.append((indicator_ds, indicator_output_path))
 
     cycle_globals_path = f'{OUTPUT_DIR}/cycle_globals'
     os.makedirs(cycle_globals_path, exist_ok=True)
+    os.chmod(cycle_globals_path, 0o777)
+    
     global_output_path = f'{cycle_globals_path}/{fp_date}_globals.nc'
     ds_and_paths.append((globals_ds, global_output_path))
 
@@ -144,6 +148,8 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
 
         cycle_pattern_anoms_path = f'{OUTPUT_DIR}/cycle_pattern_anoms/{pattern}'
         os.makedirs(cycle_pattern_anoms_path, exist_ok=True)
+        os.chmod(cycle_pattern_anoms_path, 0o777)
+        
         pattern_anoms_output_path = f'{cycle_pattern_anoms_path}/{fp_date}_{pattern}_ssha_anoms.nc'
         ds_and_paths.append((pattern_anom_ds, pattern_anoms_output_path))
 
@@ -219,6 +225,7 @@ def indicators():
 
                 backup_dir = f'{OUTPUT_DIR}/indicator/backups'
                 os.makedirs(backup_dir, exist_ok=True)
+                os.chmod(backup_dir, 0o777)
 
                 # Copy old indicator file as backup
                 try:
@@ -293,6 +300,7 @@ def indicators():
     # ==============================================
 
     os.makedirs(f'{OUTPUT_DIR}/indicator/daily', exist_ok=True)
+    os.chmod(f'{OUTPUT_DIR}/indicator/daily', 0o777)
 
     for cycle in grids:
 

@@ -128,6 +128,7 @@ def make_grid(ds):
     
 def enso_gridding():
     os.makedirs(f'{OUTPUT_DIR}/ENSO_grids/', exist_ok=True)
+    os.chmod(f'{OUTPUT_DIR}/ENSO_grids/', 0o777)
     
     simple_grid_paths = glob(f'{OUTPUT_DIR}/gridded_cycles/*.nc')
     simple_grid_paths.sort()
@@ -135,3 +136,4 @@ def enso_gridding():
         filename = f.split('/')[-1]
         ds = xr.open_dataset(f)
         make_grid(ds)
+        os.chmod()

@@ -363,6 +363,7 @@ def cycle_gridding():
 
             grid_dir = f'{OUTPUT_DIR}/gridded_cycles'
             os.makedirs(grid_dir, exist_ok=True)
+            os.chmod(grid_dir, 0o777)
             filename = f'ssha_global_half_deg_{str(date).replace("-", "")}.nc'
             filepath = f'{grid_dir}/{filename}'
 

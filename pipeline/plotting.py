@@ -200,10 +200,15 @@ def indicator_plots():
 
 def enso_maps():
     os.makedirs(f'{OUTPUT_DIR}/ENSO_grids/', exist_ok=True)
+    os.chmod(f'{OUTPUT_DIR}/ENSO_grids/', 0o777)
     os.makedirs(f'{OUTPUT_DIR}/indicator/plots', exist_ok=True)
+    os.chmod(f'{OUTPUT_DIR}/indicator/plots', 0o777)
     os.makedirs(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho_zoom', exist_ok=True)
+    os.chmod(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho_zoom', 0o777)
     os.makedirs(f'{OUTPUT_DIR}/ENSO_maps/ENSO_plate/', exist_ok=True)
+    os.chmod(f'{OUTPUT_DIR}/ENSO_maps/ENSO_plate/', 0o777)
     os.makedirs(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho/', exist_ok=True)
+    os.chmod(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho/', 0o777)
     
     enso_grid_paths = glob(f'{OUTPUT_DIR}/ENSO_grids/*.nc')
     enso_grid_paths.sort()
