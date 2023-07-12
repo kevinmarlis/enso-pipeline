@@ -3,7 +3,6 @@ import logging
 import os
 import warnings
 from datetime import datetime
-from pathlib import Path
 from shutil import copyfile
 
 import numpy as np
@@ -129,23 +128,23 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
     ds_and_paths = []
 
     fp_date = date.replace('-', '_')
-    cycle_indicators_path = OUTPUT_DIR / 'cycle_indicators'
-    cycle_indicators_path.mkdir(parents=True, exist_ok=True)
-    indicator_output_path = cycle_indicators_path / f'{fp_date}_indicator.nc'
+    cycle_indicators_path = f'{OUTPUT_DIR}/cycle_indicators'
+    os.makedirs(cycle_indicators_path, exist_ok=True)
+    indicator_output_path = f'{cycle_indicators_path}/{fp_date}_indicator.nc'
     ds_and_paths.append((indicator_ds, indicator_output_path))
 
-    cycle_globals_path = OUTPUT_DIR / 'cycle_globals'
-    cycle_globals_path.mkdir(parents=True, exist_ok=True)
-    global_output_path = cycle_globals_path / f'{fp_date}_globals.nc'
+    cycle_globals_path = f'{OUTPUT_DIR}/cycle_globals'
+    os.makedirs(cycle_globals_path, exist_ok=True)
+    global_output_path = f'{cycle_globals_path}/{fp_date}_globals.nc'
     ds_and_paths.append((globals_ds, global_output_path))
 
     for pattern in pattern_and_anom_das.keys():
         pattern_anom_ds = pattern_and_anom_das[pattern]
         pattern_anom_ds = pattern_anom_ds.expand_dims(time=[pattern_anom_ds.time.values])
 
-        cycle_pattern_anoms_path = OUTPUT_DIR / 'cycle_pattern_anoms' / pattern
-        cycle_pattern_anoms_path.mkdir(parents=True, exist_ok=True)
-        pattern_anoms_output_path = cycle_pattern_anoms_path / f'{fp_date}_{pattern}_ssha_anoms.nc'
+        cycle_pattern_anoms_path = f'{OUTPUT_DIR}/cycle_pattern_anoms/{pattern}'
+        os.makedirs(cycle_pattern_anoms_path, exist_ok=True)
+        pattern_anoms_output_path = f'{cycle_pattern_anoms_path}/{fp_date}_{pattern}_ssha_anoms.nc'
         ds_and_paths.append((pattern_anom_ds, pattern_anoms_output_path))
 
     encoding_each = {'zlib': True,
@@ -162,8 +161,7 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
                                      'dtype': 'float32',
                                      'complevel': 6}
 
-        var_encoding = {
-            var: encoding_each for var in ds.data_vars}
+        var_encoding = {var: encoding_each for var in ds.data_vars}
 
         encoding = {**coord_encoding, **var_encoding}
 
@@ -175,7 +173,7 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
 
 def concat_files(indicator_dir, type, pattern=''):
     # Glob DAILY indicators
-    daily_path = indicator_dir / f'DAILY/cycle_{type}s' / pattern
+    daily_path = f'{indicator_dir}/DAILY/cycle_{type}s/{pattern}'
     daily_files = [x for x in daily_path.glob('*.nc') if x.is_file()]
     daily_files.sort()
 
@@ -219,8 +217,8 @@ def indicators():
             if grid_mod_time >= ind_mod_time:
                 update = True
 
-                backup_dir = Path(f'{OUTPUT_DIR}/indicator/backups')
-                backup_dir.mkdir(parents=True, exist_ok=True)
+                backup_dir = f'{OUTPUT_DIR}/indicator/backups'
+                os.makedirs(backup_dir, exist_ok=True)
 
                 # Copy old indicator file as backup
                 try:
@@ -268,7 +266,7 @@ def indicators():
     # in each pattern
     for pattern in patterns:
         # load each pattern
-        pattern_fname = pattern + '_pattern_and_index.nc'
+        pattern_fname = f'{pattern}_pattern_and_index.nc'
         pattern_ds[pattern] = xr.open_dataset(f'ref_files/{pattern_fname}')
 
         # get the geographic bounds of each sla pattern
@@ -294,8 +292,7 @@ def indicators():
     # Calculate indicators for each updated (re)gridded cycle
     # ==============================================
 
-    output_dir = OUTPUT_DIR / 'indicator' / 'daily'
-    output_dir.mkdir(parents=True, exist_ok=True)
+    os.makedirs(f'{OUTPUT_DIR}/indicator/daily', exist_ok=True)
 
     for cycle in grids:
 
@@ -403,7 +400,7 @@ def indicators():
     # ==============================================
 
     try:
-        indicator_dir = OUTPUT_DIR / 'indicator'
+        indicator_dir = f'{OUTPUT_DIR}/indicator'
 
         # open_mfdataset is too slow so we glob instead
         indicators = concat_files(indicator_dir, 'indicator')

@@ -3,7 +3,6 @@ import logging
 import os
 import warnings
 from datetime import datetime
-from pathlib import Path
 
 import numpy as np
 import xarray as xr
@@ -39,7 +38,7 @@ def collect_data(start, end):
     def valid_sat(f):
         if 'MERGED_ALT' in f:
             return False
-        with open(Path(f'conf/datasets.yaml'), "r") as stream:
+        with open(f'conf/datasets.yaml', "r") as stream:
             config = yaml.load(stream, yaml.Loader)
         configs = {c['ds_name']: c for c in config}
 
@@ -362,10 +361,10 @@ def cycle_gridding():
             # Save the gridded cycle
             encoding = cycle_ds_encoding(gridded_ds)
 
-            grid_dir = OUTPUT_DIR / 'gridded_cycles'
-            grid_dir.mkdir(parents=True, exist_ok=True)
+            grid_dir = f'{OUTPUT_DIR}/gridded_cycles'
+            os.makedirs(grid_dir, exist_ok=True)
             filename = f'ssha_global_half_deg_{str(date).replace("-", "")}.nc'
-            filepath = grid_dir / filename
+            filepath = f'{grid_dir}/{filename}'
 
             gridded_ds.to_netcdf(filepath, encoding=encoding)
 

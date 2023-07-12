@@ -1,3 +1,4 @@
+import os
 import warnings
 from datetime import datetime
 from glob import glob
@@ -198,6 +199,12 @@ def indicator_plots():
 
 
 def enso_maps():
+    os.makedirs(f'{OUTPUT_DIR}/ENSO_grids/', exist_ok=True)
+    os.makedirs(f'{OUTPUT_DIR}/indicator/plots', exist_ok=True)
+    os.makedirs(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho_zoom', exist_ok=True)
+    os.makedirs(f'{OUTPUT_DIR}/ENSO_maps/ENSO_plate/', exist_ok=True)
+    os.makedirs(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho/', exist_ok=True)
+    
     enso_grid_paths = glob(f'{OUTPUT_DIR}/ENSO_grids/*.nc')
     enso_grid_paths.sort()
     

@@ -1,6 +1,5 @@
 import warnings
 from datetime import datetime
-from pathlib import Path
 from netCDF4 import default_fillvals  # pylint: disable=no-name-in-module
 
 import numpy as np
@@ -128,6 +127,8 @@ def make_grid(ds):
     smooth_ds.to_netcdf(f'{OUTPUT_DIR}/ENSO_grids/{fname}', encoding=encoding)
     
 def enso_gridding():
+    os.makedirs(f'{OUTPUT_DIR}/ENSO_grids/', exist_ok=True)
+    
     simple_grid_paths = glob(f'{OUTPUT_DIR}/gridded_cycles/*.nc')
     simple_grid_paths.sort()
     for f in simple_grid_paths:

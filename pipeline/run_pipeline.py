@@ -1,6 +1,5 @@
 import logging
 from argparse import ArgumentParser
-from pathlib import Path
 
 import txt_engine
 import yaml
@@ -14,9 +13,6 @@ import enso_grids
 
 configure_logging(file_timestamp=False)
 
-if not Path.is_dir(OUTPUT_DIR):
-    logging.fatal('Output directory does not exist. Exiting.')
-    exit()
 logging.debug(f'\nUsing output directory: {OUTPUT_DIR}')
 
 
@@ -106,7 +102,7 @@ if __name__ == '__main__':
 
     # --------------------- Run pipeline ---------------------
 
-    with open(Path(f'conf/datasets.yaml'), "r") as stream:
+    with open(f'conf/datasets.yaml', "r") as stream:
         config = yaml.load(stream, yaml.Loader)
     configs = {c['ds_name']: c for c in config}
     
@@ -119,13 +115,13 @@ if __name__ == '__main__':
 
     # Run harvesting, gridding, indexing, post processing
     if CHOSEN_OPTION == '1':
-        run_cycle_gridding(OUTPUT_DIR)
+        run_cycle_gridding()
         run_indexing()
         run_enso()
 
     # Run gridding
     elif CHOSEN_OPTION == '2':
-        run_cycle_gridding(OUTPUT_DIR)
+        run_cycle_gridding()
 
     # Run indexing (and post processing)
     elif CHOSEN_OPTION == '3':
