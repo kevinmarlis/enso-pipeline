@@ -2,16 +2,7 @@
 *.pyc
 
 # data files
-*.nc
-*.bz2
-*.h5
 *.png
-
-# sensitive files
-*login.yaml
-
-# factors pickled files
-*_factors
 
 # Editors
 .vscode/
