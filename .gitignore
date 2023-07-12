@@ -1,0 +1,28 @@
+.vs*
+*.pyc
+
+# data files
+*.nc
+*.bz2
+*.h5
+*.png
+
+# sensitive files
+*login.yaml
+
+# factors pickled files
+*_factors
+
+# Editors
+.vscode/
+
+# Mac/OSX
+.DS_Store
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+*log.log
+
+*.ipynb_checkpoints/*
