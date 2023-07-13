@@ -151,7 +151,8 @@ def indicator_plots():
     slice_start = None
 
     output_path = f'{OUTPUT_DIR}/indicator/plots'
-    output_path.mkdir(parents=True, exist_ok=True)
+    os.makedirs(output_path, exist_ok=True)
+    os.chmod(output_path, 0o777)
 
     for var in vars:
 

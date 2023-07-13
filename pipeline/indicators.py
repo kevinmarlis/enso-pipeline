@@ -146,6 +146,9 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
         pattern_anom_ds = pattern_and_anom_das[pattern]
         pattern_anom_ds = pattern_anom_ds.expand_dims(time=[pattern_anom_ds.time.values])
 
+        os.makedirs(f'{OUTPUT_DIR}/indicator/daily/cycle_pattern_anoms/', exist_ok=True)
+        os.chmod(cycle_pattern_anoms_path, 0o777)
+
         cycle_pattern_anoms_path = f'{OUTPUT_DIR}/indicator/daily/cycle_pattern_anoms/{pattern}'
         os.makedirs(cycle_pattern_anoms_path, exist_ok=True)
         os.chmod(cycle_pattern_anoms_path, 0o777)
@@ -178,8 +181,8 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
 
 
 def concat_files(indicator_dir, type, pattern=''):
-    # Glob DAILY indicators
-    daily_path = f'{indicator_dir}/DAILY/cycle_{type}s/{pattern}'
+    # Glob daily indicators
+    daily_path = f'{indicator_dir}/daily/cycle_{type}s/{pattern}'
     daily_files = [x for x in glob(f'{daily_path}/*.nc') if os.path.isfile(x)]
     daily_files.sort()
 
@@ -212,6 +215,9 @@ def indicators():
     grids.sort()
 
     update = False
+
+    os.makedirs(f'{OUTPUT_DIR}/indicator/', exist_ok=True)
+    os.chmod(f'{OUTPUT_DIR}/indicator/', 0o777)
 
     # Check if we need to recalculate indicators
     data_path = f'{OUTPUT_DIR}/indicator/indicators.nc'
@@ -404,7 +410,7 @@ def indicators():
     print('Merging and saving final indicator products.\n')
 
     # ==============================================
-    # Combine DAILY indicator files
+    # Combine daily indicator files
     # ==============================================
 
     try:

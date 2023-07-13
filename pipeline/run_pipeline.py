@@ -104,10 +104,7 @@ if __name__ == '__main__':
 
     with open(f'conf/datasets.yaml', "r") as stream:
         config = yaml.load(stream, yaml.Loader)
-    configs = {c['ds_name']: c for c in config}
-    
-    # Make output directories
-    
+    configs = {c['ds_name']: c for c in config}    
 
     DATASET_NAMES = list(configs.keys())
 
