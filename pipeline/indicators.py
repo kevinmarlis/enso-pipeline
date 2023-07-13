@@ -7,7 +7,7 @@ from shutil import copyfile
 
 import numpy as np
 import xarray as xr
-from netCDF4 import default_fillvals
+from netCDF4 import default_fillvals # type: ignore
 from conf.global_settings import OUTPUT_DIR
 
 with warnings.catch_warnings():
@@ -128,14 +128,14 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
     ds_and_paths = []
 
     fp_date = date.replace('-', '_')
-    cycle_indicators_path = f'{OUTPUT_DIR}/cycle_indicators'
+    cycle_indicators_path = f'{OUTPUT_DIR}/indicator/daily/cycle_indicators'
     os.makedirs(cycle_indicators_path, exist_ok=True)
     os.chmod(cycle_indicators_path, 0o777)
     
     indicator_output_path = f'{cycle_indicators_path}/{fp_date}_indicator.nc'
     ds_and_paths.append((indicator_ds, indicator_output_path))
 
-    cycle_globals_path = f'{OUTPUT_DIR}/cycle_globals'
+    cycle_globals_path = f'{OUTPUT_DIR}/indicator/daily/cycle_globals'
     os.makedirs(cycle_globals_path, exist_ok=True)
     os.chmod(cycle_globals_path, 0o777)
     
@@ -146,7 +146,7 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
         pattern_anom_ds = pattern_and_anom_das[pattern]
         pattern_anom_ds = pattern_anom_ds.expand_dims(time=[pattern_anom_ds.time.values])
 
-        cycle_pattern_anoms_path = f'{OUTPUT_DIR}/cycle_pattern_anoms/{pattern}'
+        cycle_pattern_anoms_path = f'{OUTPUT_DIR}/indicator/daily/cycle_pattern_anoms/{pattern}'
         os.makedirs(cycle_pattern_anoms_path, exist_ok=True)
         os.chmod(cycle_pattern_anoms_path, 0o777)
         
@@ -180,7 +180,7 @@ def save_files(date, indicator_ds, globals_ds, pattern_and_anom_das):
 def concat_files(indicator_dir, type, pattern=''):
     # Glob DAILY indicators
     daily_path = f'{indicator_dir}/DAILY/cycle_{type}s/{pattern}'
-    daily_files = [x for x in daily_path.glob('*.nc') if x.is_file()]
+    daily_files = [x for x in glob(f'{daily_path}/*.nc') if os.path.isfile(x)]
     daily_files.sort()
 
     files = daily_files
@@ -413,18 +413,18 @@ def indicators():
         # open_mfdataset is too slow so we glob instead
         indicators = concat_files(indicator_dir, 'indicator')
         print(' - Saving indicator file\n')
-        indicators.to_netcdf(indicator_dir / 'indicators.nc')
+        indicators.to_netcdf(f'{indicator_dir}/indicators.nc')
 
         for pattern in patterns:
             pattern_anoms = concat_files(
                 indicator_dir, 'pattern_anom', pattern)
             print(f' - Saving {pattern} anom file\n')
-            pattern_anoms.to_netcdf(indicator_dir / f'{pattern}_anoms.nc')
+            pattern_anoms.to_netcdf(f'{indicator_dir}/{pattern}_anoms.nc')
             pattern_anoms = None
 
         globals_ds = concat_files(indicator_dir, 'global')
         print(' - Saving global file\n')
-        globals_ds.to_netcdf(indicator_dir / 'globals.nc')
+        globals_ds.to_netcdf(f'{indicator_dir}/globals.nc')
         globals_ds = None
 
     except Exception as e:
