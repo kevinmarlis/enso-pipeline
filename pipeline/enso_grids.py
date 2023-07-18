@@ -10,6 +10,20 @@ import os
 
 warnings.filterwarnings('ignore')
 
+seas_ds = xr.open_dataset('ref_files/trnd_seas_simple_grid.nc')
+seas_ds.coords['Longitude'] = (seas_ds.coords['Longitude']) % 360
+seas_ds = seas_ds.sortby(seas_ds.Longitude)
+
+front_seas_ds = seas_ds.isel(Month_grid=0)
+back_seas_ds = seas_ds.isel(Month_grid=-1)
+front_seas_ds = front_seas_ds.assign_coords({'Month_grid': front_seas_ds.Month_grid.values + (12/12)})
+back_seas_ds = back_seas_ds.assign_coords({'Month_grid': back_seas_ds.Month_grid.values - (12/12)})
+padded_seas_ds = xr.concat([back_seas_ds, seas_ds, front_seas_ds], dim='Month_grid')
+
+hr_mask_ds = xr.open_dataset('ref_files/HR_GRID_MASK_latlon.nc')
+hr_mask_ds.coords['longitude'] = hr_mask_ds.coords['longitude'] % 360
+hr_mask_ds = hr_mask_ds.sortby(hr_mask_ds.longitude)
+
 def get_decimal_year(dt: datetime):
     year_start = datetime(dt.year, 1, 1)
     year_end = year_start.replace(year=dt.year+1)
@@ -31,10 +45,6 @@ def smoothing(ds):
     dsr = interp_ds.rolling({'longitude':38, 'latitude':16}, min_periods=1, center=True).mean()
     dsr = dsr.sel(longitude=slice(0,360))
     
-    hr_mask_ds = xr.open_dataset('ref_files/HR_GRID_MASK_latlon.nc')
-    hr_mask_ds.coords['longitude'] = hr_mask_ds.coords['longitude'] % 360
-    hr_mask_ds = hr_mask_ds.sortby(hr_mask_ds.longitude)
-    
     dsr.SSHA.values = np.where(hr_mask_ds.maskC.values == 0, np.nan, dsr.SSHA.values)
     filtered_ds = dsr.where(dsr.counts > 475, np.nan)
     filtered_ds.SSHA.values = np.where(hr_mask_ds.maskC.values == 0, np.nan, filtered_ds.SSHA.values)
@@ -46,11 +56,8 @@ def smoothing(ds):
 def remove_trends(data, date):
     decimal_year = get_decimal_year(date)
     yr_fraction = decimal_year - date.year
-    seas_ds = xr.open_dataset('ref_files/trnd_seas_simple_grid.nc')
-    seas_ds.coords['Longitude'] = (seas_ds.coords['Longitude']) % 360
-    seas_ds = seas_ds.sortby(seas_ds.Longitude)
 
-    cycle_ds = seas_ds.interp({'Month_grid': yr_fraction})
+    cycle_ds = padded_seas_ds.interp({'Month_grid': yr_fraction})
     removed_cycle_data = data - (cycle_ds.Seasonal_SSH.values * 10)
     trend = (decimal_year * seas_ds.SSH_Slope * 10) + (seas_ds.SSH_Offset * 10)
     removed_cycle_trend_data = removed_cycle_data - trend
@@ -136,4 +143,3 @@ def enso_gridding():
         filename = f.split('/')[-1]
         ds = xr.open_dataset(f)
         make_grid(ds)
-        os.chmod()

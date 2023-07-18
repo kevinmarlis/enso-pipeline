@@ -46,7 +46,7 @@ def show_menu():
         print('1) Run pipeline on all')
         print('2) Perform gridding')
         print('3) Calculate index values and generate txt output and plots')
-        print('4) Generate txt output and plots')
+        print('4) Generate ENSO grids and maps')
         selection = input('Enter option number: ')
 
         if selection in ['1', '2', '3', '4']:
