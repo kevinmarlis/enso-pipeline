@@ -92,6 +92,7 @@ def run_enso():
         logging.info('ENSO gridding complete.')
     except Exception as e:
         logging.error(f'ENSO gridding failed: {e}')
+    plotting.enso_maps()
 
 if __name__ == '__main__':
 
