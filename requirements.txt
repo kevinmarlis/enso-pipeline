@@ -4,9 +4,10 @@ pyyaml
 netcdf4
 requests
 xarray==0.16.2
-matplotlib==3.3.4
+matplotlib==3.5.2
 h5py
 scipy
 cartopy
 dask
 pandas==1.3.5
+shapely==1.7.1

@@ -1,6 +1,6 @@
 import os
 import warnings
-from datetime import datetime
+from datetime import datetime, date
 from glob import glob
 
 import cartopy.crs as ccrs
@@ -32,7 +32,7 @@ def make_akiko_cmap() -> colors.ListedColormap:
 
 akiko_cmap = make_akiko_cmap()
 
-def date_sat_map(date: datetime.date) -> str:
+def date_sat_map(map_date: datetime.date) -> str:
     '''
     TOPEX/Poseidon -> Jason-1:  			14 May 2002
     Jason-1 -> Jason-2:						12 Jul 2008
@@ -45,15 +45,15 @@ def date_sat_map(date: datetime.date) -> str:
     j3 = (date(2016,3,18), date(2022,4,7))
     s6 = (date(2022,4,7), date.today())
     
-    if date >= topex[0] and date < topex[1]:
+    if map_date >= topex[0] and map_date < topex[1]:
         return 'TOPEX/Poseidon'
-    if date >= j1[0] and date < j1[1]:
+    if map_date >= j1[0] and map_date < j1[1]:
         return 'Jason-1'
-    if date >= j2[0] and date < j2[1]:
+    if map_date >= j2[0] and map_date < j2[1]:
         return 'Jason-2'
-    if date >= j3[0] and date < j3[1]:
+    if map_date >= j3[0] and map_date < j3[1]:
         return 'Jason-3'
-    if date >= s6[0] and date < s6[1]:
+    if map_date >= s6[0] and map_date < s6[1]:
         return 'Sentinel-6 Michael Freilich'
 
 def plot_orth(enso_ds, date, satellite, vmin=-180, vmax=180):

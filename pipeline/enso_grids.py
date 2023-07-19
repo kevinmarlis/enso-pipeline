@@ -107,31 +107,97 @@ def cycle_ds_encoding(cycle_ds):
     return encoding
 
 def make_grid(ds):
+    # ds.coords['longitude'] = (ds.coords['longitude']) % 360
+    # ds = ds.sortby(ds.longitude)
+    # data = ds.SSHA.values * 1000
+    # date = datetime.strptime(str(ds.time.values)[:10], '%Y-%m-%d')
+    # date_str = datetime.strftime(date, '%Y%m%d')
+
+    # removed_cycle_trend_data = remove_trends(data, date)
+    # ds.SSHA.values = removed_cycle_trend_data
+
+    # padded_ds = padding(ds)
+
+    # smooth_ds = smoothing(padded_ds)
+    # smooth_ds = smooth_ds.drop_vars(['counts', 'mask'])
+    # smooth_ds.SSHA.attrs = ds.SSHA.attrs
+    # smooth_ds.SSHA.attrs['units'] = 'mm'
+    # smooth_ds.SSHA.attrs['valid_min'] = np.nanmin(smooth_ds.SSHA.values)
+    # smooth_ds.SSHA.attrs['valid_max'] = np.nanmax(smooth_ds.SSHA.values)
+    # smooth_ds.SSHA.attrs['summary'] = 'Data gridded to 0.25 degree grid with boxcar smoothing applied'
+
+    # smooth_ds.latitude.attrs = {'long_name': 'latitude', 'standard_name': 'latitude'}
+    # smooth_ds.longitude.attrs = {'long_name': 'longitude', 'standard_name': 'longitude'}
+
+    # encoding = cycle_ds_encoding(smooth_ds)
+
+    # fname = f'ssha_enso_{date_str}.nc'
+    # smooth_ds.to_netcdf(f'{OUTPUT_DIR}/ENSO_grids/{fname}', encoding=encoding)
+    fname = f'ssha_enso_{datetime.strftime(date, "%Y%m%d")}.nc'
+    if os.path.exists(f'{OUTPUT_DIR}/ENSO_grids/{fname}'):
+        print('ENSO grid already exists. Skipping.')
+        return
+    
     ds.coords['longitude'] = (ds.coords['longitude']) % 360
     ds = ds.sortby(ds.longitude)
-    data = ds.SSHA.values * 1000
-    date = datetime.strptime(str(ds.time.values)[:10], '%Y-%m-%d')
-    date_str = datetime.strftime(date, '%Y%m%d')
+    ds = ds.where(ds.counts > 475, np.nan)
 
-    removed_cycle_trend_data = remove_trends(data, date)
+    lats = ds.latitude.values
+    lons = ds.longitude.values
+    data = ds.SSHA.values * 1000
+    counts = ds.counts.values
+    date = datetime.utcfromtimestamp(ds.time.values.tolist()/1e9)
+
+    date_str = datetime.strftime(date, '%b %d %Y')
+
+    decimal_year = get_decimal_year(date)
+    yr_fraction = decimal_year - date.year
+    cycle_ds = padded_seas_ds.interp({'Month_grid': yr_fraction})
+
+    removed_cycle_data = data - (cycle_ds.Seasonal_SSH.values * 10)
+    trend = (decimal_year * seas_ds.SSH_Slope * 10) + (seas_ds.SSH_Offset * 10)
+    removed_cycle_trend_data = removed_cycle_data - trend
     ds.SSHA.values = removed_cycle_trend_data
 
-    padded_ds = padding(ds)
+    front = ds.sel(longitude=slice(0,10))
+    back = ds.sel(longitude=slice(350,360))
+    front = front.assign_coords({'longitude': front.longitude.values + 360})
+    back = back.assign_coords({'longitude': back.longitude.values - 360})
+    padded_ds = xr.merge([back, ds, front])
 
     smooth_ds = smoothing(padded_ds)
-    smooth_ds.SSHA.attrs = ds.SSHA.attrs
-    smooth_ds.SSHA.attrs['units'] = 'mm'
-    smooth_ds.SSHA.attrs['valid_min'] = np.nanmin(smooth_ds.SSHA.values)
-    smooth_ds.SSHA.attrs['valid_max'] = np.nanmax(smooth_ds.SSHA.values)
-    smooth_ds.SSHA.attrs['summary'] = 'Data gridded to 0.25 degree grid with boxcar smoothing applied'
+    filtered_ds = smooth_ds.drop_vars(['counts', 'mask'])
 
-    smooth_ds.latitude.attrs = {'long_name': 'latitude', 'standard_name': 'latitude'}
-    smooth_ds.longitude.attrs = {'long_name': 'longitude', 'standard_name': 'longitude'}
+    filtered_ds.SSHA.attrs = ds.SSHA.attrs
+    filtered_ds.SSHA.attrs['units'] = 'mm'
+    filtered_ds.SSHA.attrs['valid_min'] = np.nanmin(filtered_ds.SSHA.values)
+    filtered_ds.SSHA.attrs['valid_max'] = np.nanmax(filtered_ds.SSHA.values)
+    filtered_ds.SSHA.attrs['summary'] = 'Data gridded to 0.25 degree grid with boxcar smoothing applied'
 
-    encoding = cycle_ds_encoding(smooth_ds)
+    filtered_ds.time.attrs = {'long_name': 'time', 'standard_name': 'time'}
 
-    fname = f'ssha_enso_{date_str}.nc'
-    smooth_ds.to_netcdf(f'{OUTPUT_DIR}/ENSO_grids/{fname}', encoding=encoding)
+    filtered_ds.latitude.attrs = {'long_name': 'latitude', 'standard_name': 'latitude'}
+    filtered_ds.longitude.attrs = {'long_name': 'longitude', 'standard_name': 'longitude'}
+    encoding = cycle_ds_encoding(filtered_ds)
+
+    filtered_ds.to_netcdf(f'{OUTPUT_DIR}/ENSO_grids/{fname}', encoding=encoding)
+    
+def check_update(cycle_filename):
+    '''
+    Check if ENSO grid needs to be generated
+    '''
+    date = cycle_filename.split('_')[-1].split('.')[0]
+    enso_filename = f'ssha_enso_{date}.nc'
+
+    if not os.path.exists(f'{OUTPUT_DIR}/ENSO_grids/{enso_filename}'):
+        return True
+
+    cycle_mod_time = datetime.fromtimestamp(os.path.getmtime(f'{OUTPUT_DIR}/gridded_cycles/{cycle_filename}'))
+    enso_mod_time = datetime.fromtimestamp(os.path.getmtime(f'{OUTPUT_DIR}/ENSO_grids/{enso_filename}'))
+
+    if cycle_mod_time > enso_mod_time:
+        return True
+    return False
     
 def enso_gridding():
     os.makedirs(f'{OUTPUT_DIR}/ENSO_grids/', exist_ok=True)
@@ -141,5 +207,7 @@ def enso_gridding():
     simple_grid_paths.sort()
     for f in simple_grid_paths:
         filename = f.split('/')[-1]
-        ds = xr.open_dataset(f)
-        make_grid(ds)
+        if check_update(filename):
+            print(f'Making ENSO grid for {filename}')
+            ds = xr.open_dataset(f)
+            make_grid(ds)
