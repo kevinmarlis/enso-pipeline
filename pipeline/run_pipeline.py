@@ -92,7 +92,11 @@ def run_enso():
         logging.info('ENSO gridding complete.')
     except Exception as e:
         logging.error(f'ENSO gridding failed: {e}')
-
+    try: 
+        plotting.enso_maps()
+        logging.info('ENSO mapping complete.')
+    except Exception as e:
+        logging.error(f'ENSO mapping failed: {e}')
 if __name__ == '__main__':
 
     print(' SEA LEVEL INDICATORS PIPELINE '.center(57, '='))

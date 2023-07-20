@@ -119,9 +119,9 @@ def plot_plate(enso_ds, date, satellite, vmin=-180, vmax=180):
 
 def plot_orth_enso(enso_ds, date, vmin=-180, vmax=180):
     date_str = datetime.strftime(date, '%d %b %Y')
-    fig = plt.figure(figsize=(14,10))
+    fig = plt.figure(figsize=(14,10), dpi=70)
     ax = fig.add_subplot(1, 1, 1, projection=ccrs.Orthographic(-150, 10))
-    ax.pcolormesh(enso_ds.longitude, enso_ds.latitude, enso_ds.SSHA, transform=ccrs.PlateCarree(), vmin=vmin, vmax=vmax, cmap=my_cmap, shading='nearest')
+    ax.pcolormesh(enso_ds.longitude, enso_ds.latitude, enso_ds.SSHA, transform=ccrs.PlateCarree(), vmin=vmin, vmax=vmax, cmap=akiko_cmap, shading='nearest')
     ax.add_feature(cfeature.OCEAN, facecolor='lightgrey')
     ax.add_feature(cfeature.LAND, facecolor='dimgrey', zorder=10)
     ax.coastlines(zorder=11)
