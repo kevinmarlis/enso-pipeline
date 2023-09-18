@@ -133,6 +133,8 @@ def make_grid(ds):
 
     # fname = f'ssha_enso_{date_str}.nc'
     # smooth_ds.to_netcdf(f'{OUTPUT_DIR}/ENSO_grids/{fname}', encoding=encoding)
+    
+    date = datetime.strptime(str(ds.time.values)[:10], '%Y-%m-%d')
     fname = f'ssha_enso_{datetime.strftime(date, "%Y%m%d")}.nc'
     if os.path.exists(f'{OUTPUT_DIR}/ENSO_grids/{fname}'):
         print('ENSO grid already exists. Skipping.')

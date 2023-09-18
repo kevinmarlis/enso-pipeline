@@ -2,7 +2,6 @@ import logging
 from argparse import ArgumentParser
 
 import txt_engine
-import yaml
 from conf.global_settings import OUTPUT_DIR
 from cycle_gridding import cycle_gridding
 from indicators import indicators
@@ -27,9 +26,6 @@ def create_parser():
 
     parser.add_argument('--options_menu', default=False, action='store_true',
                         help='Display option menu to select which steps in the pipeline to run.')
-
-    # parser.add_argument('-gc', '--grid_cycles', type=str, default='', dest='grid_cycles',
-    #                 help='Dataset to harvest')
 
     return parser
 
@@ -97,37 +93,32 @@ def run_enso():
         logging.info('ENSO mapping complete.')
     except Exception as e:
         logging.error(f'ENSO mapping failed: {e}')
-if __name__ == '__main__':
-
+        
+               
+if __name__ == '__main__':  
+      
     print(' SEA LEVEL INDICATORS PIPELINE '.center(57, '='))
 
     PARSER = create_parser()
     args = PARSER.parse_args()
 
     # --------------------- Run pipeline ---------------------
-
-    with open(f'conf/datasets.yaml', "r") as stream:
-        config = yaml.load(stream, yaml.Loader)
-    configs = {c['ds_name']: c for c in config}    
-
-    DATASET_NAMES = list(configs.keys())
-
-    CHOSEN_OPTION = show_menu() if args.options_menu else '1'
+    selection = show_menu() if args.options_menu else '1'
 
     # Run harvesting, gridding, indexing, post processing
-    if CHOSEN_OPTION == '1':
+    if selection == '1':
         run_cycle_gridding()
         run_indexing()
         run_enso()
 
     # Run gridding
-    elif CHOSEN_OPTION == '2':
+    elif selection == '2':
         run_cycle_gridding()
 
     # Run indexing (and post processing)
-    elif CHOSEN_OPTION == '3':
+    elif selection == '3':
         run_indexing()
         
     # Run ENSO
-    elif CHOSEN_OPTION == '4':
+    elif selection == '4':
         run_enso()

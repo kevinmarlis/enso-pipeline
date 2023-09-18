@@ -2,7 +2,7 @@ from glob import glob
 import logging
 import os
 import warnings
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import numpy as np
 import xarray as xr
@@ -18,6 +18,17 @@ with warnings.catch_warnings():
 
 from conf.global_settings import FILE_FORMAT, DATA_DIR, OUTPUT_DIR
 
+
+def get_last_date(sat: str) -> str:
+    '''
+    Gets the last date of a daily file, returns
+    as string YYYYMMDD
+    '''
+    files = glob(f'{DATA_DIR}/{sat}/*{FILE_FORMAT}')
+    files.sort()
+    last_file = files[-1]
+    date = last_file.split('/')[-1].split('.')[0][-8:]
+    return date
 
 def collect_data(start, end):
     def date_filter(f):
@@ -157,15 +168,6 @@ def merge_granules(cycle_granules):
         # Apply temporary sentinel 6A corrections
         if 'SNTNL-6A' in granule:
             ds = apply_s6_correction(ds, granule)
-
-        # Check for duplicate time values. Drop if they are true duplicates
-        # all_times = ds.time.values
-        # seen = set()
-        # seen_add = seen.add
-        # seen_twice = list(x for x in all_times if x in seen or seen_add(x))
-        # if seen_twice:
-        #     _, index = np.unique(ds['time'], return_index=True)
-        #     ds = ds.isel(time=index)
 
         granules.append(ds)
 
@@ -334,7 +336,11 @@ def cycle_ds_encoding(cycle_ds):
 
 
 def cycle_gridding():
-    ALL_DATES = np.arange('1992-10-05', 'now', 7, dtype='datetime64[D]')
+    last_s6_date = get_last_date('SNTNL-6A')
+    stop_date = datetime.strptime(last_s6_date, '%Y%m%d') - timedelta(5)
+    stop_date_str = stop_date.strftime('%Y-%m-%d')
+    
+    ALL_DATES = np.arange('1992-10-05', stop_date_str, 7, dtype='datetime64[D]')
 
     failed_grids = []
 

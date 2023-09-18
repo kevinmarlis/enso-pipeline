@@ -1,23 +1,22 @@
 # Sea Level Indicators
 
-A data pipeline that calculates El Niño Southern Oscillation, Pacific Decadal Oscillation and Indian Ocean Diple sea level indicator values from along track satellite data.
+A containerized version of the Sea Level Indicators data pipeline that calculates El Niño Southern Oscillation, Pacific Decadal Oscillation and Indian Ocean Diple sea level indicator values from along track satellite data.
 
 ## Getting Started
-After cloning the repo, you should create a conda environment for the project.
+
+Clone the repo: https://github.com/kevinmarlis/enso-pipeline
+
+Pulling the image: `docker pull kmarlis/enso-pipeline:latest`
+
+## Executing the container
+
+The pipeline requires mounting two directories: one containing the alongtrack data, and one containing the pipeline output. 
 
 ```
-conda env create -f SLI_pipeline/conf/environment.yaml -n sli-pipeline
+docker run --rm -dit -v /export/01/dev-data3/alongtrack-delivery/:/alongtrack-delivery -v /home/marlis/pipeline_output:/pipeline_output kmarlis/enso-pipeline:latest
 ```
 
-## Running the pipeline
-
-The pipeline defaults to running every step, but a command line argument can be passed to runt he pipeline via an options menu. This allows you to select which steps of the pipeline to perform.
-```
-/opt/anaconda3/envs/sli-pipeline/bin/python SLI_pipeline/run_pipeline.py --options_menu
-```
+This will mount the appropriate directories and will execute the pipeline end to end. There are checks in place so that redundant work will not be performed.
 
 ## Links
 Indicators can be found at https://sealevel.jpl.nasa.gov
-
-
-Need to mount output dir and alongtrack-delivery

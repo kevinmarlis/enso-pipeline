@@ -136,7 +136,7 @@ def plot_orth_enso(enso_ds, date, vmin=-180, vmax=180):
     ax.set_ylim(-3000000,2000000)
     fig.tight_layout()
 
-    outpath = f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho_zoom/ENSO_ortho_zoom{str(date).replace("-","")}.png'
+    outpath = f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho_zoom/ENSO_ortho_zoom_{str(date).replace("-","")}.png'
     plt.savefig(outpath, bbox_inches='tight', pad_inches=.75)
 
 
@@ -170,11 +170,11 @@ def indicator_plots():
         plt.figure(figsize=(10, 5))
 
         if 'spatial_mean' not in var:
-            plt.hlines(
-                y=0, xmin=var_ds.time[0]-delta, xmax=var_ds.time[-1]+delta, color='black', linestyle='-')
+            
+            plt.hlines(y=0, xmin=var_ds.time.values[0]-delta, xmax=var_ds.time.values[-1]+delta, color='black', linestyle='-')
             max_val = max(var_ds.values)
             plt.ylim(0-max_val-.25, max_val+.25)
-            plt.xlim(var_ds.time[0]-delta, var_ds.time[-1]+delta)
+            plt.xlim(var_ds.time.values[0]-delta, var_ds.time.values[-1]+delta)
         else:
             var_ds = var_ds * 100
             plt.ylabel('cm')
@@ -199,28 +199,44 @@ def indicator_plots():
         plt.cla()
 
 
+def check_update(cycle_filename):
+    date = cycle_filename.split('_')[-1].split('.')[0]
+    
+    for map_type in ['ENSO_plate', 'ENSO_ortho', 'ENSO_ortho_zoom']:
+        map_path = f'{OUTPUT_DIR}/ENSO_maps/{map_type}/{map_type}_{str(date).replace("-","")}.png'
+        if not os.path.exists(map_path):
+            return True
+        enso_mod_time = datetime.fromtimestamp(os.path.getmtime(f'{OUTPUT_DIR}/ENSO_grids/{cycle_filename}'))
+        map_mod_time = datetime.fromtimestamp(map_path)
+        
+        if enso_mod_time > map_mod_time:
+            return True
+
+    return False
+
+
 def enso_maps():
-    os.makedirs(f'{OUTPUT_DIR}/ENSO_grids/', exist_ok=True)
-    os.chmod(f'{OUTPUT_DIR}/ENSO_grids/', 0o777)
-    os.makedirs(f'{OUTPUT_DIR}/indicator/plots', exist_ok=True)
-    os.chmod(f'{OUTPUT_DIR}/indicator/plots', 0o777)
-    os.makedirs(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho_zoom', exist_ok=True)
-    os.chmod(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho_zoom', 0o777)
-    os.makedirs(f'{OUTPUT_DIR}/ENSO_maps/ENSO_plate/', exist_ok=True)
-    os.chmod(f'{OUTPUT_DIR}/ENSO_maps/ENSO_plate/', 0o777)
-    os.makedirs(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho/', exist_ok=True)
-    os.chmod(f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho/', 0o777)
+    dirs_to_make = [
+        f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho_zoom',
+        f'{OUTPUT_DIR}/ENSO_maps/ENSO_plate/',
+        f'{OUTPUT_DIR}/ENSO_maps/ENSO_ortho/'
+    ]
+    
+    for dir in dirs_to_make:
+        os.makedirs(dir, exist_ok=True)
+        os.chmod(dir, 0o777)
     
     enso_grid_paths = glob(f'{OUTPUT_DIR}/ENSO_grids/*.nc')
     enso_grid_paths.sort()
     
     for f in enso_grid_paths:
         file_name = f.split('/')[-1]
-        ds = xr.open_dataset(f)
-        date_dt = datetime.strptime(str(ds.time.values)[:10], '%Y-%m-%d').date()
-        print(date_dt)
-        satellite = date_sat_map(date_dt)
-        
-        plot_orth(ds, date_dt, satellite)
-        plot_plate(ds, date_dt, satellite)
-        plot_orth_enso(ds, date_dt, -130, 130)
+        if check_update(file_name):
+            ds = xr.open_dataset(f)
+            date_dt = datetime.strptime(str(ds.time.values)[:10], '%Y-%m-%d').date()
+            print(date_dt)
+            satellite = date_sat_map(date_dt)
+            
+            plot_orth(ds, date_dt, satellite)
+            plot_plate(ds, date_dt, satellite)
+            plot_orth_enso(ds, date_dt, -130, 130)
